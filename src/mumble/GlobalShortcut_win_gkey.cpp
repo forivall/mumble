@@ -48,6 +48,10 @@
 #define LOGITECH_GKEY_DLL_LOC "C:/Program Files/Logitech Gaming Software/SDK/G-key/x86/LogitechGkey.dll"
 #endif
 
+#define LOGITECH_MAX_MOUSE_BUTTONS 20
+#define LOGITECH_MAX_GKEYS 29
+#define LOGITECH_MAX_M_STATES 3
+
 GlobalShortcutWinGkey::GlobalShortcutWinGkey()
 {
   qWarning("GlobalShortcutWinGkey: constructor");
@@ -68,6 +72,9 @@ bool GlobalShortcutWinGkey::load()
     pfnLogiGkeyIsKeyboardGkeyPressed = (fnLogiGkeyIsKeyboardGkeyPressed)lib.resolve("LogiGkeyIsKeyboardGkeyPressed");
     pfnLogiGkeyShutdown = (fnLogiGkeyShutdown)lib.resolve("LogiGkeyShutdown");
 
+    qWarning("GlobalShortcutWinGkey: resolved i %x gmbs %x gkgs %x imbp %x ikgp %x s %x",
+    pfnLogiGkeyInit, pfnLogiGkeyGetMouseButtonString, pfnLogiGkeyGetKeyboardGkeyString,
+    pfnLogiGkeyIsMouseButtonPressed, pfnLogiGkeyIsKeyboardGkeyPressed, pfnLogiGkeyShutdown);
     context.gkeyContext = this;
     context.gkeyCallBack = keyCallback;
 
@@ -96,13 +103,35 @@ bool GlobalShortcutWinGkey::unload()
   return lib.unload();
 }
 
+// only works while window is in foreground.
 void GlobalShortcutWinGkey::keyCallback(GkeyCode key, const wchar_t* name, void* context) //-V813
 {
   GlobalShortcutWinGkey* that = reinterpret_cast<GlobalShortcutWinGkey*>(context);
 
   qWarning("gkey pressed or released!");
-  qDebug() << "gkey pressed or released!";
   // ScopedSRWLock lock( &sdk->mLock );
   //
   // sdk->mQueue.push( key );
+}
+
+QString GlobalShortcutWinGkey::buttonName(const QVariant &v) {
+
+}
+
+void GlobalShortcutWinGkey::timeTicked() {
+
+  // qDebug("timeTicked");
+  for (int m_i = 6; m_i <= LOGITECH_MAX_MOUSE_BUTTONS; m_i++) {
+    if (pfnLogiGkeyIsMouseButtonPressed(m_i)) {
+      qWarning("gmousebutton %d down", m_i);
+    }
+  }
+
+  for (int s_i = 1; s_i <= LOGITECH_MAX_M_STATES; s_i++) {
+    for (int k_i = 1; k_i <= LOGITECH_MAX_GKEYS; k_i++) {
+      if (pfnLogiGkeyIsKeyboardGkeyPressed(k_i, s_i)) {
+        qWarning("gkey %d down s %d", k_i, s_i);
+      }
+    }
+  }
 }

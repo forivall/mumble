@@ -70,6 +70,9 @@ public:
 	bool load();
 	bool unload();
 
+	void timeTicked();
+	QString buttonName(const QVariant &v);
+
 private:
 	bool loaded;
 	bool initialized;

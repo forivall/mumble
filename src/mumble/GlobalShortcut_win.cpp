@@ -549,6 +549,10 @@ void GlobalShortcutWin::timeTicked() {
 		}
 		id->pDID->Poll();
 
+#ifdef USE_GKEYS
+		gkey.timeTicked();
+#endif
+
 		hr = id->pDID->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), rgdod, &dwItems, 0);
 		if (FAILED(hr))
 			continue;
