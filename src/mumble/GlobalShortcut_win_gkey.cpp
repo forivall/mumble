@@ -28,21 +28,81 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+// portions of this code are
+// Copyright (C) 2011-2014 Logitech. All rights reserved.
+// Author: Tiziano Pigliucci
+// Email: tpigliucci@logitech.com
+// http://gaming.logitech.com/en-us/developers
+
 #include "mumble_pch.hpp"
 
 #include "GlobalShortcut_win_gkey.h"
 
+#ifdef _M_X64
+#define LOGITECH_GKEY_DLL_REGKEY " HKEY_CLASSES_ROOT\\Wow6432Node\\CLSID\\{7bded654-f278-4977-a20f-6e72a0d07859}\\ServerBinary"
+// #define LOGITECH_GKEY_DLL_LOC "C:\\Program Files\\Logitech Gaming Software\\SDK\\G-key\\x64\\LogitechGkey.dll"
+#define LOGITECH_GKEY_DLL_LOC "C:/Program Files/Logitech Gaming Software/SDK/G-key/x64/LogitechGkey.dll"
+#else
+#define LOGITECH_GKEY_DLL_REGKEY "HKEY_CLASSES_ROOT\\CLSID\\{7bded654-f278-4977-a20f-6e72a0d07859}\\ServerBinary"
+// #define LOGITECH_GKEY_DLL_LOC "C:\\Program Files\\Logitech Gaming Software\\SDK\\G-key\\x64\\LogitechGkey.dll"
+#define LOGITECH_GKEY_DLL_LOC "C:/Program Files/Logitech Gaming Software/SDK/G-key/x86/LogitechGkey.dll"
+#endif
+
 GlobalShortcutWinGkey::GlobalShortcutWinGkey()
 {
   qWarning("GlobalShortcutWinGkey: constructor");
+  QString filename = QString::fromLatin1(LOGITECH_GKEY_DLL_LOC);
+  lib.setFileName(filename);
 }
 
-void GlobalShortcutWinGkey::load()
+bool GlobalShortcutWinGkey::load()
 {
-  qWarning("GlobalShortcutWinGkey: initialize");
+  qWarning("GlobalShortcutWinGkey: load");
+  loaded = lib.load();
+  if (loaded) {
+    qWarning("GlobalShortcutWinGkey: load success");
+    pfnLogiGkeyInit = (fnLogiGkeyInit)lib.resolve("LogiGkeyInit");
+    pfnLogiGkeyGetMouseButtonString = (fnLogiGkeyGetMouseButtonString)lib.resolve("LogiGkeyGetMouseButtonString");
+    pfnLogiGkeyGetKeyboardGkeyString = (fnLogiGkeyGetKeyboardGkeyString)lib.resolve("LogiGkeyGetKeyboardGkeyString");
+    pfnLogiGkeyIsMouseButtonPressed = (fnLogiGkeyIsMouseButtonPressed)lib.resolve("LogiGkeyIsMouseButtonPressed");
+    pfnLogiGkeyIsKeyboardGkeyPressed = (fnLogiGkeyIsKeyboardGkeyPressed)lib.resolve("LogiGkeyIsKeyboardGkeyPressed");
+    pfnLogiGkeyShutdown = (fnLogiGkeyShutdown)lib.resolve("LogiGkeyShutdown");
+
+    context.gkeyContext = this;
+    context.gkeyCallBack = keyCallback;
+
+    if (pfnLogiGkeyInit) {
+      initialized = pfnLogiGkeyInit(&context);
+      if (initialized) {
+        qWarning("GlobalShortcutWinGkey: initialized success");
+      }
+    } else {
+      qWarning("GlobalShortcutWinGkey: can't initialize!");
+    }
+  } else {
+    qWarning("GlobalShortcutWinGkey: load failed!");
+  }
+  return initialized;
 }
 
-void GlobalShortcutWinGkey::unload()
+bool GlobalShortcutWinGkey::unload()
 {
-  qWarning("GlobalShortcutWinGkey: shutdown");
+
+  if (initialized) {
+    qWarning("GlobalShortcutWinGkey: shutdown");
+    pfnLogiGkeyShutdown();
+  }
+  qWarning("GlobalShortcutWinGkey: unload");
+  return lib.unload();
+}
+
+void GlobalShortcutWinGkey::keyCallback(GkeyCode key, const wchar_t* name, void* context) //-V813
+{
+  GlobalShortcutWinGkey* that = reinterpret_cast<GlobalShortcutWinGkey*>(context);
+
+  qWarning("gkey pressed or released!");
+  qDebug() << "gkey pressed or released!";
+  // ScopedSRWLock lock( &sdk->mLock );
+  //
+  // sdk->mQueue.push( key );
 }
