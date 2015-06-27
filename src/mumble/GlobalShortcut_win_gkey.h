@@ -31,14 +31,51 @@
 #ifndef MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
 #define MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
 
+#ifdef _M_X64
+#define GKEY_LOGITECH_DLL_REGKEY "HKEY_CLASSES_ROOT\\Wow6432Node\\CLSID\\{7bded654-f278-4977-a20f-6e72a0d07859}\\ServerBinary"
+// TODO: lookup from windows registry instead
+#define GKEY_LOGITECH_DLL_DEFAULT_LOCATION "C:/Program Files/Logitech Gaming Software/SDK/G-key/x64/LogitechGkey.dll"
+#else
+#define GKEY_LOGITECH_DLL_REGKEY "HKEY_CLASSES_ROOT\\CLSID\\{7bded654-f278-4977-a20f-6e72a0d07859}\\ServerBinary"
+#define GKEY_LOGITECH_DLL_DEFAULT_LOCATION "C:/Program Files/Logitech Gaming Software/SDK/G-key/x86/LogitechGkey.dll"
+#endif
+
+#define GKEY_MIN_MOUSE_BUTTON 6
+#define GKEY_MAX_MOUSE_BUTTON 20
+#define GKEY_MIN_KEYBOARD_BUTTON 1
+#define GKEY_MAX_KEYBOARD_BUTTON 29
+#define GKEY_MIN_KEYBOARD_MODE 1
+#define GKEY_MAX_KEYBOARD_MODE 3
+
+typedef bool (*fnLogiGkeyInit)(void *);
+typedef void (*fnLogiGkeyShutdown)();
+
+typedef bool (*fnLogiGkeyIsMouseButtonPressed)(int button);
+typedef bool (*fnLogiGkeyIsKeyboardGkeyPressed)(int key, int mode);
+typedef wchar_t* (*fnLogiGkeyGetMouseButtonString)(int button);
+typedef wchar_t* (*fnLogiGkeyGetKeyboardGkeyString)(int key, int mode);
 
 class GlobalShortcutWinGkey
 {
 public:
 	GlobalShortcutWinGkey();
 
+	// will also init
 	void load();
+	// will also shutdown
 	void unload();
+	void setParent(GlobalShortcutEngine*);
+
+private:
+	GlobalShortcutEngine *parent;
+	qLibrary gkeyLib;
+
+	fnLogiGkeyInit *pfnLogiGkeyInit;
+	fnLogiGkeyShutdown *pfnLogiGkeyShutdown;
+	fnLogiGkeyIsMouseButtonPressed *pfnLogiGkeyIsMouseButtonPressed;
+	fnLogiGkeyIsKeyboardGkeyPressed *pfnLogiGkeyIsKeyboardGkeyPressed;
+	fnLogiGkeyGetMouseButtonString *pfnLogiGkeyGetMouseButtonString;
+	fnLogiGkeyGetKeyboardGkeyString *pfnLogiGkeyGetKeyboardGkeyString;
 };
 
 #endif // GLOBALSHORTCUTWINGKEY_H
