@@ -30,19 +30,55 @@
 
 #include "mumble_pch.hpp"
 
-#include "GlobalShortcut_win_gkey.h"
+#include "Gkey.h"
 
-GlobalShortcutWinGkey::GlobalShortcutWinGkey()
+#ifdef Q_CC_GNU
+#define RESOLVE(var) { var = reinterpret_cast<__typeof__(var)>(qlLogiGkey.resolve(#var)); bValid = bValid && (var != NULL); }
+#else
+#define RESOLVE(var) { * reinterpret_cast<void **>(&var) = static_cast<void *>(qlLogiGkey.resolve(#var)); bValid = bValid && (var != NULL); }
+#endif
+
+GkeyLibrary::GkeyLibrary()
 {
-  qWarning("GlobalShortcutWinGkey: constructor");
+	qWarning("GlobalShortcutWinGkey: initialize and load");
+	// TODO: lookup from registry first and then try the default location
+	qlLogiGkey.setFileName(QString::fromLatin1(GKEY_LOGITECH_DLL_DEFAULT_LOCATION));
+
+	if (!qlLogiGkey.load())
+		bValid = false;
+
+	RESOLVE(LogiGkeyInit);
+	RESOLVE(LogiGkeyShutdown);
+	RESOLVE(LogiGkeyIsMouseButtonPressed);
+	RESOLVE(LogiGkeyIsKeyboardGkeyPressed);
+	RESOLVE(LogiGkeyGetMouseButtonString);
+	RESOLVE(LogiGkeyGetKeyboardGkeyString);
+
+	if (bValid)
+		bValid = LogiGkeyInit(NULL);
 }
 
-void GlobalShortcutWinGkey::load()
-{
-  qWarning("GlobalShortcutWinGkey: initialize");
+GkeyLibrary::~GkeyLibrary() {
+	if (LogiGkeyShutdown != NULL)
+		LogiGkeyShutdown();
 }
 
-void GlobalShortcutWinGkey::unload()
-{
-  qWarning("GlobalShortcutWinGkey: shutdown");
+bool GkeyLibrary::isValid() const {
+	return bValid;
+}
+
+bool GkeyLibrary::isMouseButtonPressed(int button) {
+	return LogiGkeyIsMouseButtonPressed(button);
+}
+
+bool GkeyLibrary::isKeyboardGkeyPressed(int key, int mode) {
+	return LogiGkeyIsKeyboardGkeyPressed(key, mode);
+}
+
+QString GkeyLibrary::getMouseButtonString(int button) {
+	return QString::fromWCharArray(LogiGkeyGetMouseButtonString(button));
+}
+
+QString GkeyLibrary::getKeyboardGkeyString(int key, int mode) {
+	return QString::fromWCharArray(LogiGkeyGetKeyboardGkeyString(key, mode));
 }

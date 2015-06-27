@@ -28,8 +28,12 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
-#define MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
+#ifndef MUMBLE_MUMBLE_GKEY_H
+#define MUMBLE_MUMBLE_GKEY_H
+
+// #include <stdint.h>
+#include <QtCore/QLibrary>
+#include <QtCore/QString>
 
 #ifdef _M_X64
 #define GKEY_LOGITECH_DLL_REGKEY "HKEY_CLASSES_ROOT\\Wow6432Node\\CLSID\\{7bded654-f278-4977-a20f-6e72a0d07859}\\ServerBinary"
@@ -49,33 +53,33 @@
 
 typedef bool (*fnLogiGkeyInit)(void *);
 typedef void (*fnLogiGkeyShutdown)();
-
 typedef bool (*fnLogiGkeyIsMouseButtonPressed)(int button);
 typedef bool (*fnLogiGkeyIsKeyboardGkeyPressed)(int key, int mode);
 typedef wchar_t* (*fnLogiGkeyGetMouseButtonString)(int button);
 typedef wchar_t* (*fnLogiGkeyGetKeyboardGkeyString)(int key, int mode);
 
-class GlobalShortcutWinGkey
+class GkeyLibrary
 {
 public:
-	GlobalShortcutWinGkey();
+	GkeyLibrary();
+	virtual ~GkeyLibrary();
+	bool isValid() const;
 
-	// will also init
-	void load();
-	// will also shutdown
-	void unload();
-	void setParent(GlobalShortcutEngine*);
+	bool isMouseButtonPressed(int button);
+	bool isKeyboardGkeyPressed(int key, int mode);
+	QString getMouseButtonString(int button);
+	QString getKeyboardGkeyString(int key, int mode);
 
-private:
-	GlobalShortcutEngine *parent;
-	qLibrary gkeyLib;
+protected:
+	QLibrary qlLogiGkey;
+	bool bValid;
 
-	fnLogiGkeyInit *pfnLogiGkeyInit;
-	fnLogiGkeyShutdown *pfnLogiGkeyShutdown;
-	fnLogiGkeyIsMouseButtonPressed *pfnLogiGkeyIsMouseButtonPressed;
-	fnLogiGkeyIsKeyboardGkeyPressed *pfnLogiGkeyIsKeyboardGkeyPressed;
-	fnLogiGkeyGetMouseButtonString *pfnLogiGkeyGetMouseButtonString;
-	fnLogiGkeyGetKeyboardGkeyString *pfnLogiGkeyGetKeyboardGkeyString;
+	bool (*LogiGkeyInit)(void *);
+	void (*LogiGkeyShutdown)();
+	bool (*LogiGkeyIsMouseButtonPressed)(int button);
+	bool (*LogiGkeyIsKeyboardGkeyPressed)(int key, int mode);
+	wchar_t *(*LogiGkeyGetMouseButtonString)(int button);
+	wchar_t *(*LogiGkeyGetKeyboardGkeyString)(int key, int mode);
 };
 
-#endif // GLOBALSHORTCUTWINGKEY_H
+#endif // MUMBLE_MUMBLE_GKEY_H

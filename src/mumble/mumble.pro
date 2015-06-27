@@ -375,8 +375,8 @@ win32 {
     CONFIG	*= wasapi
   }
   CONFIG(gkeys) {
-    HEADERS *= GlobalShortcut_win_gkey.h
-    SOURCES *= GlobalShortcut_win_gkey.cpp
+    HEADERS *= Gkey.h
+    SOURCES *= Gkey.cpp
     DEFINES *= USE_GKEYS
   }
 

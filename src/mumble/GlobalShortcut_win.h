@@ -35,7 +35,7 @@
 #include "Timer.h"
 
 #ifdef USE_GKEYS
-#include "GlobalShortcut_win_gkey.h"
+#include "Gkey.h"
 #endif
 
 #define DIRECTINPUT_VERSION 0x0800
@@ -75,7 +75,7 @@ class GlobalShortcutWin : public GlobalShortcutEngine {
 		Timer tDoubleClick;
 		bool bHook;
 #ifdef USE_GKEYS
-		GlobalShortcutWinGkey gkey;
+		GkeyLibrary *gkey;
 #endif
 		static BOOL CALLBACK EnumSuitableDevicesCB(LPCDIDEVICEINSTANCE, LPDIRECTINPUTDEVICE8, DWORD, DWORD, LPVOID);
 		static BOOL CALLBACK EnumDevicesCB(LPCDIDEVICEINSTANCE, LPVOID);

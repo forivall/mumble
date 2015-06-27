@@ -152,7 +152,8 @@ void GlobalShortcutWin::run() {
 	}
 
 #ifdef USE_GKEYS
-	gkey.load();
+	gkey = new GkeyLibrary();
+	qWarning("Gkeys initialized %d", gkey->isValid());
 #endif
 
 	QTimer * timer = new QTimer(this);
@@ -164,7 +165,7 @@ void GlobalShortcutWin::run() {
 	exec();
 
 #ifdef USE_GKEYS
-	gkey.unload();
+	delete gkey;
 #endif
 
 	if (bHook) {
