@@ -152,6 +152,7 @@ void GlobalShortcutWin::run() {
 	}
 
 #ifdef USE_GKEYS
+	gkey.setParent(this);
 	gkey.load();
 #endif
 
@@ -575,6 +576,11 @@ QString GlobalShortcutWin::buttonName(const QVariant &v) {
 	GlobalShortcutWin *gsw = static_cast<GlobalShortcutWin *>(GlobalShortcutEngine::engine);
 
 	const QList<QVariant> &sublist = v.toList();
+#ifdef USE_GKEYS
+	if (sublist.count() == 3) {
+		return gkey.buttonName(v);
+	}
+#endif
 	if (sublist.count() != 2)
 		return QString();
 

@@ -36,6 +36,8 @@
 #ifndef MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
 #define MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
 
+#include "GlobalShortcut.h"
+
 #define LOGITECH_MAX_MOUSE_BUTTONS 20
 #define LOGITECH_MAX_GKEYS 29
 #define LOGITECH_MAX_M_STATES 3
@@ -69,6 +71,9 @@ typedef BOOL (*fnLogiGkeyIsMouseButtonPressed)(int button);
 typedef BOOL (*fnLogiGkeyIsKeyboardGkeyPressed)(int key, int mode);
 typedef void (*fnLogiGkeyShutdown)();
 
+#define GKEY_TYPE_MOUSE 1
+#define GKEY_TYPE_KEYBOARD 2
+
 class GlobalShortcutWinGkey
 {
 public:
@@ -79,9 +84,12 @@ public:
 	bool load();
 	bool unload();
 
+	void setParent(GlobalShortcutEngine *newParent);
 	void timeTicked();
 	QString buttonName(const QVariant &v);
 
+protected:
+	GlobalShortcutEngine* parent;
 private:
 	bool loaded;
 	bool initialized;

@@ -43,15 +43,17 @@
 #endif
 
 
-GlobalShortcutWinGkey::GlobalShortcutWinGkey()
-{
+GlobalShortcutWinGkey::GlobalShortcutWinGkey() {
   qWarning("GlobalShortcutWinGkey: constructor");
   QString filename = QString::fromLatin1(LOGITECH_GKEY_DLL_LOC);
   lib.setFileName(filename);
 }
 
-bool GlobalShortcutWinGkey::load()
-{
+void GlobalShortcutWinGkey::setParent(GlobalShortcutEngine *newParent) {
+  parent = newParent;
+}
+
+bool GlobalShortcutWinGkey::load() {
   qWarning("GlobalShortcutWinGkey: load");
   loaded = lib.load();
   if (loaded) {
@@ -83,8 +85,7 @@ bool GlobalShortcutWinGkey::load()
   return initialized;
 }
 
-bool GlobalShortcutWinGkey::unload()
-{
+bool GlobalShortcutWinGkey::unload() {
 
   if (initialized) {
     qWarning("GlobalShortcutWinGkey: shutdown");
@@ -95,8 +96,7 @@ bool GlobalShortcutWinGkey::unload()
 }
 
 // only works while window is in foreground.
-void GlobalShortcutWinGkey::keyCallback(GkeyCode key, const wchar_t* name, void* context) //-V813
-{
+void GlobalShortcutWinGkey::keyCallback(GkeyCode key, const wchar_t* name, void* context) {
   GlobalShortcutWinGkey* that = reinterpret_cast<GlobalShortcutWinGkey*>(context);
 
   qWarning("gkey pressed or released!");
@@ -106,23 +106,53 @@ void GlobalShortcutWinGkey::keyCallback(GkeyCode key, const wchar_t* name, void*
 }
 
 QString GlobalShortcutWinGkey::buttonName(const QVariant &v) {
-
+  if (!initialized) {
+    return QString();
+  }
+  const QList<QVariant> &sublist = v.toList();
+  bool ok = false;
+  uint type = sublist.at(0).toUInt(&ok);
+  if (!ok) {
+    return QString();
+  }
+  if (type == GKEY_TYPE_MOUSE) {
+    int mouseIndex = sublist.at(1).toInt(&ok);
+    if (!ok) {
+      return QString();
+    }
+    return QString::fromWCharArray(pfnLogiGkeyGetMouseButtonString(mouseIndex));
+  }
+  else if (type == GKEY_TYPE_KEYBOARD) {
+    int keyIndex = sublist.at(1).toInt(&ok);
+    int modeIndex = sublist.at(2).toInt(&ok);
+    if (!ok) {
+      return QString();
+    }
+    return QString::fromWCharArray(pfnLogiGkeyGetKeyboardGkeyString(keyIndex, modeIndex));
+  }
+  return QString();
 }
 
 void GlobalShortcutWinGkey::timeTicked() {
+  if (!initialized) {
+    return;
+  }
 
-  // qDebug("timeTicked");
   for (int m_i = 6; m_i <= LOGITECH_MAX_MOUSE_BUTTONS; m_i++) {
-    if (pfnLogiGkeyIsMouseButtonPressed(m_i)) {
-      qWarning("gmousebutton %d down", m_i);
-    }
+    QList<QVariant> ql;
+    ql << GKEY_TYPE_MOUSE;
+    ql << m_i;
+    ql << 0;
+    parent->handleButton(ql, pfnLogiGkeyIsMouseButtonPressed(m_i));
   }
 
   for (int s_i = 1; s_i <= LOGITECH_MAX_M_STATES; s_i++) {
     for (int k_i = 1; k_i <= LOGITECH_MAX_GKEYS; k_i++) {
-      if (pfnLogiGkeyIsKeyboardGkeyPressed(k_i, s_i)) {
-        qWarning("gkey %d down s %d", k_i, s_i);
-      }
+      QList<QVariant> ql;
+      ql << GKEY_TYPE_KEYBOARD;
+      ql << k_i;
+      ql << s_i;
+      parent->handleButton(ql, pfnLogiGkeyIsKeyboardGkeyPressed(k_i, s_i));
     }
   }
 }
