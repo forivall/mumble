@@ -28,8 +28,17 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+// Logitech API portions of this code are
+// Copyright (C) 2011-2014 Logitech. All rights reserved.
+// http://gaming.logitech.com/en-us/developers
+// Used under fair use
+
 #ifndef MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
 #define MUMBLE_MUMBLE_GLOBALSHORTCUT_WIN_GKEY_H
+
+#define LOGITECH_MAX_MOUSE_BUTTONS 20
+#define LOGITECH_MAX_GKEYS 29
+#define LOGITECH_MAX_M_STATES 3
 
 #pragma pack(push, 1)
 

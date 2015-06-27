@@ -28,12 +28,6 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// portions of this code are
-// Copyright (C) 2011-2014 Logitech. All rights reserved.
-// Author: Tiziano Pigliucci
-// Email: tpigliucci@logitech.com
-// http://gaming.logitech.com/en-us/developers
-
 #include "mumble_pch.hpp"
 
 #include "GlobalShortcut_win_gkey.h"
@@ -48,9 +42,6 @@
 #define LOGITECH_GKEY_DLL_LOC "C:/Program Files/Logitech Gaming Software/SDK/G-key/x86/LogitechGkey.dll"
 #endif
 
-#define LOGITECH_MAX_MOUSE_BUTTONS 20
-#define LOGITECH_MAX_GKEYS 29
-#define LOGITECH_MAX_M_STATES 3
 
 GlobalShortcutWinGkey::GlobalShortcutWinGkey()
 {
